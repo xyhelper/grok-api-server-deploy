@@ -30,9 +30,9 @@ services:
     environment:
       TZ: Asia/Shanghai # 指定时区
       # 接入网关地址
-      CHATPROXY: "https://demo.xyhelper.cn"
-      # 接入网关的authkey
-      AUTHKEY: "xyhelper"
+      GROKPROXY: "https://demo.xyhelper.cn"
+      # 文件服务地址,配置为grok-api-server可被外部访问的地址
+      FILESERVERPREFIX: "http://1.2.3.4:8500"
     volumes:
       - ./data/grok-api-server/:/app/data/
     labels:
@@ -46,4 +46,4 @@ services:
     environment:
       - TZ=Asia/Shanghai
     labels:
-      - "com.centurylinklabs.watchtower.scope=xyhelper-grok-api-server"
+      - "com.centurylinklabs.watchtower.scope=xyhelper-grok-api-server" 
