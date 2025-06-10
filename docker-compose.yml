@@ -22,7 +22,7 @@ services:
     volumes:
       - ./data/redis/:/data/
   grok-api-server:
-    image: xyhelper/grok-api-server:latest
+    image: ghcr.io/xyhelper/grok-api-server:latest
     container_name: grok-api-server
     restart: always
     ports:
