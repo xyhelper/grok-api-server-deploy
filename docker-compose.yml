@@ -1,18 +1,38 @@
-version: '3.8'
 services:
+  backend:
+    image: ghcr.io/xyhelper/grok-api-server:latest
+    ports:
+      - 8500:8001
+    environment:
+      - TZ=Asia/Shanghai # 指定时区
+      - GROKPROXY=  # 接入网关地址
+      - FILESERVERPREFIX=http://1.2.3.4:8500 # 文件服务地址,配置为grok-api-server可被外部访问的地址
+      - FILEDOWNLOADPROXY=                  # 文件下载代理地址,不需要可留空
+      - R2REGION=                           # R2区域,不需要可留空
+      - R2ENDPOINT=                         # R2端点,不需要可留空
+      - R2ACCESSKEYID=                      # R2访问密钥ID,不需要可留空
+      - R2KEYSECRET=                        # R2密钥,不需要可留空
+      - R2BUCKETNAME=                       # R2桶名称,不需要可留空
+      - R2URL=                              # R2 URL地址,不需要可留空
+    volumes:
+      - ./backend/manifest:/app/manifest
+      - ./config/config.yaml:/app/config.yaml
+    restart: unless-stopped
+   
   mysql:
     image: mysql:8
-    command: --mysql-native-password=ON --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
-    restart: always
+    command: --mysql-native-password=ON --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --innodb-use-native-aio=0
     volumes:
       - ./data/mysql/:/var/lib/mysql/
       - ./docker-entrypoint-initdb.d/:/docker-entrypoint-initdb.d/
     environment:
       TZ: Asia/Shanghai # 指定时区
       MYSQL_ROOT_PASSWORD: "123456" # 配置root用户密码
-      MYSQL_DATABASE: "cool" # 业务库名
+      MYSQL_DATABASE: "cool" # 业务库名称
       MYSQL_USER: "cool" # 业务库用户名
       MYSQL_PASSWORD: "123123" # 业务库密码
+    restart: unless-stopped
+  
   redis:
     image: redis
     # command: --requirepass "12345678" # redis库密码,不需要密码注释本行
@@ -21,36 +41,3 @@ services:
       TZ: Asia/Shanghai # 指定时区
     volumes:
       - ./data/redis/:/data/
-  grok-api-server:
-    image: ghcr.io/xyhelper/grok-api-server:latest
-    container_name: grok-api-server
-    restart: always
-    ports:
-      - 8500:8001
-    environment:
-      TZ: Asia/Shanghai # 指定时区
-      # 接入网关地址
-      GROKPROXY: "https://demo.xyhelper.cn"
-      # 文件服务地址,配置为grok-api-server可被外部访问的地址
-      FILESERVERPREFIX: "http://1.2.3.4:8500"
-      FILEDOWNLOADPROXY: "" # 文件下载代理地址,不需要可留空
-      R2REGION: ""          # R2区域,不需要可留空
-      R2ENDPOINT: ""        # R2端点,不需要可留空
-      R2ACCESSKEYID: ""     # R2访问密钥ID,不需要可留空
-      R2KEYSECRET: ""       # R2密钥,不需要可留空
-      R2BUCKETNAME: ""      # R2桶名称,不需要可留空
-      R2URL: ""             # R2 URL地址,不需要可留空
-    volumes:
-      - ./data/grok-api-server/:/app/data/
-    labels:
-      - "com.centurylinklabs.watchtower.scope=xyhelper-grok-api-server"
-  watchtower:
-    image: containrrr/watchtower
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    command: --scope xyhelper-grok-api-server --cleanup
-    restart: always
-    environment:
-      - TZ=Asia/Shanghai
-    labels:
-      - "com.centurylinklabs.watchtower.scope=xyhelper-grok-api-server" 
